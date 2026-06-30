@@ -1,0 +1,14 @@
+# Python 3.13. Versions are those used for the published results;
+# newer compatible versions should also work.
+numpy
+pandas
+scikit-learn
+scikit-survival==0.27.0
+lifelines==0.30.3
+pycox==0.3.0
+torch
+torchtuples
+matplotlib
+seaborn
+ucimlrepo
+shap          # optional, for feature-importance plots
