@@ -11,4 +11,5 @@ torchtuples
 matplotlib
 seaborn
 ucimlrepo
+imbalanced-learn==0.14.2
 shap          # optional, for feature-importance plots

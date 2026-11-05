@@ -2,16 +2,31 @@
 
 Each wrapper returns (risk, surv_fn) where risk is higher = worse prognosis and
 surv_fn(times) -> S(t) matrix, so they slot straight into eval_utils.evaluate_fold.
+`seed` fixes the inner validation split and every random draw of training, so one
+seed gives one result.
 All wrappers are defensive: on any failure they return NaNs for that fold rather
 than killing the whole CV run.
 """
+import random
+
 import numpy as np
 import torch
 import torchtuples as tt
 from pycox.models import CoxPH, DeepHitSingle
 
 torch.set_num_threads(2)
+# Deterministic kernels, so a fixed seed gives the same network on every run (CPU only).
+torch.use_deterministic_algorithms(True)
 _NAN = (None, None)
+
+
+def _seed_all(seed):
+    """Seed every random source a fit draws from: torch (weight initialisation, dropout,
+    the torchtuples batch shuffle), numpy and Python `random` (torchtuples names its
+    early-stopping checkpoint file with it)."""
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
 
 
 def _split(n, frac=0.2, seed=0):
@@ -39,6 +54,7 @@ def _net(in_features, out_features, nodes=(32, 32), dropout=0.3):
 
 def fit_deepsurv(Ztr, ytr, Zte, seed=0):
     """DeepSurv = neural Cox proportional hazards (Katzman et al., 2018)."""
+    _seed_all(seed)
     try:
         Ztr = np.asarray(Ztr, "float32"); Zte = np.asarray(Zte, "float32")
         t = ytr["time"].astype("float32"); e = ytr["event"].astype("float32")
@@ -59,6 +75,7 @@ def fit_deepsurv(Ztr, ytr, Zte, seed=0):
 
 def fit_deephit(Ztr, ytr, Zte, seed=0, num_durations=40):
     """DeepHit (single-risk): discrete-time deep survival (Lee et al., 2018)."""
+    _seed_all(seed)
     try:
         Ztr = np.asarray(Ztr, "float32"); Zte = np.asarray(Zte, "float32")
         t = ytr["time"].astype("float64"); e = ytr["event"].astype("float64")

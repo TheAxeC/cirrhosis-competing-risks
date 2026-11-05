@@ -1,11 +1,11 @@
 """Competing-risks analysis: death vs. liver transplant.
 
-The original thesis treated transplant ('CL') as a third classification label.
-That is statistically wrong: transplant is a COMPETING EVENT that removes a
-patient from the at-risk set for death. Here we (1) estimate cause-specific
-cumulative incidence functions (Aalen-Johansen) and (2) fit cause-specific Cox
-models to show which clinical features drive death vs. transplant differently
--- something a 3-class classifier cannot express.
+Transplant ('CL') is a competing event: it removes a patient from the at-risk
+set for death, so it is modelled as a second cause, not as a third
+classification label. The script (1) estimates the cumulative incidence of each
+cause (Aalen-Johansen) and (2) fits cause-specific Cox models that show which
+clinical features drive death and transplant differently, an effect a
+three-class classifier (run_classification.py) cannot express.
 """
 import os, sys, warnings
 from core.paths import DATA_DIR, RESULTS_DIR, FIG_DIR

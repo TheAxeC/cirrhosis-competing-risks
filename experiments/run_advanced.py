@@ -59,7 +59,8 @@ def run(n_splits=5, n_repeats=4):
         Ztr = np.asarray(pre.fit_transform(Xtr), float)
         Zte = np.asarray(pre.transform(Xte), float)
         for name, fitfn in DEEP_MODELS.items():
-            risk, sfn = fitfn(Ztr, ytr, Zte, seed=fold)
+            # one fixed seed per fold: reproducible, and distinct across folds
+            risk, sfn = fitfn(Ztr, ytr, Zte, seed=RNG + fold)
             rec = {"model": name, "fold": fold}
             rec.update(evaluate_fold(ytr, yte, risk, sfn) if risk is not None
                        else {k: np.nan for k in ["c_harrell", "c_uno", "auc_1y",

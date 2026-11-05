@@ -2,7 +2,7 @@
 
 Repeated stratified 5-fold CV comparing the Mayo PBC clinical score against
 Cox PH and two ML survival ensembles. All preprocessing is fit inside each
-fold (no leakage), fixing a methodological flaw of the original thesis.
+fold (no leakage), so no test-fold information reaches imputation or scaling.
 """
 import os, sys, warnings
 from core.paths import DATA_DIR, RESULTS_DIR, FIG_DIR
@@ -17,7 +17,7 @@ from sksurv.linear_model import CoxPHSurvivalAnalysis
 from sksurv.ensemble import RandomSurvivalForest, GradientBoostingSurvivalAnalysis
 
 from core.data_prep import load_clean, make_preprocessor, NUM_COLS, CAT_COLS
-from core.eval_utils import evaluate_fold, bootstrap_ci, survival_at_times, HORIZONS
+from core.eval_utils import evaluate_fold, bootstrap_ci, survival_at_times, serial_predict, HORIZONS
 
 warnings.filterwarnings("ignore")
 RNG = 42
@@ -41,7 +41,7 @@ def fit_predict_standard(model, pre, Xtr, ytr, Xte):
     Zte = pre.transform(Xte)
     Ztr = np.asarray(Ztr, dtype=float)
     Zte = np.asarray(Zte, dtype=float)
-    model.fit(Ztr, ytr)
+    serial_predict(model.fit(Ztr, ytr))
     risk = model.predict(Zte)
     surv_fn = lambda times: survival_at_times(model, Zte, times)
     return risk, surv_fn

@@ -141,6 +141,6 @@ if __name__ == "__main__":
                     "delta_lo": round(dlo, 3), "delta_hi": round(dhi, 3)})
         print(f"  LM {Lyr}y: n={n}, deaths={nev} | "
               f"baseline C={cb:.3f}  dynamic C={cd:.3f}  "
-              f"Δ={cd-cb:+.3f} [{dlo:+.3f}, {dhi:+.3f}]")
+              f"delta={cd-cb:+.3f} [{dlo:+.3f}, {dhi:+.3f}]")
     pd.DataFrame(res).to_csv(RESULTS_DIR / "dynamic_landmark.csv", index=False)
     print("\nSaved dynamic_tvcox.csv + dynamic_landmark.csv")

@@ -19,6 +19,7 @@ from sksurv.linear_model import CoxPHSurvivalAnalysis
 from sksurv.ensemble import RandomSurvivalForest, GradientBoostingSurvivalAnalysis
 from sksurv.metrics import concordance_index_censored
 from core.deep_models import fit_deepsurv
+from core.eval_utils import serial_predict
 
 warnings.filterwarnings("ignore")
 RNG = 42
@@ -50,14 +51,15 @@ def bench(X, dur, ev, n_splits=5, n_repeats=2):
     y = Surv.from_arrays(ev.astype(bool), dur)
     cv = RepeatedStratifiedKFold(n_splits=n_splits, n_repeats=n_repeats, random_state=RNG)
     scores = {m: [] for m in list(SK_MODELS) + ["DeepSurv"]}
-    for tr, te in cv.split(X, ev):
+    for fold, (tr, te) in enumerate(cv.split(X, ev)):
         sc = StandardScaler().fit(X[tr])
         Ztr, Zte = sc.transform(X[tr]), sc.transform(X[te])
         for name, ctor in SK_MODELS.items():
-            m = ctor().fit(Ztr, y[tr])
+            m = serial_predict(ctor().fit(Ztr, y[tr]))
             r = m.predict(Zte)
             scores[name].append(concordance_index_censored(y[te]["event"], y[te]["time"], r)[0])
-        risk, _ = fit_deepsurv(Ztr, y[tr], Zte, seed=int(tr[0]) % 1000)
+        # one fixed seed per fold: reproducible, and distinct across folds
+        risk, _ = fit_deepsurv(Ztr, y[tr], Zte, seed=RNG + fold)
         if risk is not None:
             scores["DeepSurv"].append(
                 concordance_index_censored(y[te]["event"], y[te]["time"], risk)[0])
@@ -74,7 +76,7 @@ if __name__ == "__main__":
         cox_c = res["Cox PH"][0]
         for m, (mean, sd) in res.items():
             delta = mean - cox_c
-            print(f"  {m:<16} C={mean:.3f} (sd {sd:.3f})  Δvs Cox={delta:+.3f}")
+            print(f"  {m:<16} C={mean:.3f} (sd {sd:.3f})  delta vs Cox={delta:+.3f}")
             rows.append({"dataset": name, "n": len(X), "model": m,
                          "c_index": round(mean, 3), "delta_vs_cox": round(delta, 3)})
     df = pd.DataFrame(rows)

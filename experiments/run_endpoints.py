@@ -1,8 +1,9 @@
 """Cross-validated discrimination for BOTH competing endpoints.
 
-Backs the headline claim that treating transplant as a competing event (rather
-than a classification label) yields strong, cross-validated risk discrimination
-for the very outcome that defeated the thesis's classifier (transplant F1=0.21).
+Measures the cross-validated risk discrimination of each endpoint when
+transplant is treated as a competing event rather than a classification label;
+the three-class classifiers' transplant-class F1 for the same outcome is computed
+in run_classification.py (results/classification.csv).
 
 Death endpoint : event = death,      transplant censored.
 Transplant     : event = transplant, death censored.

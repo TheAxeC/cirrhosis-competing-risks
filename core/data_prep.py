@@ -29,13 +29,12 @@ CAT_COLS = ["Drug", "Sex", "Ascites", "Hepatomegaly", "Spiders", "Edema", "Stage
 
 def load_clean():
     """Load the raw CSV and engineer the survival targets + Mayo score."""
-    df = pd.read_csv(DATA_CSV)
+    # The raw CSV marks missing values either as an empty field or as the
+    # string 'NaNN', in numeric and categorical columns alike; both are read
+    # as NaN, so the lab columns parse as floats and 'NaNN' never becomes a
+    # category of its own.
+    df = pd.read_csv(DATA_CSV, na_values=["NaNN"])
     df = df.drop(columns=["ID"])
-    # Missing values in several lab columns are encoded as the string 'NaNN',
-    # forcing them to object dtype -> coerce all numeric columns to floats.
-    for c in ["Bilirubin", "Cholesterol", "Albumin", "Copper", "Alk_Phos",
-              "SGOT", "Tryglicerides", "Platelets", "Prothrombin"]:
-        df[c] = pd.to_numeric(df[c], errors="coerce")
     df["Age_years"] = df["Age"] / 365.25
 
     # --- Survival targets -------------------------------------------------

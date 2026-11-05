@@ -30,6 +30,20 @@ def _common_support(y_train, y_test):
     return lo, hi
 
 
+def serial_predict(model):
+    """Set n_jobs=1 on a fitted forest, or on a pipeline's final step, and return it.
+
+    sklearn and sksurv forests add the per-tree predictions across threads in the order
+    the threads finish, so a parallel predict differs in the last floating-point digits
+    from run to run. A parallel fit is reproducible (each tree draws its own seed from
+    random_state), so only prediction is made serial.
+    """
+    est = model.steps[-1][1] if hasattr(model, "steps") else model
+    if "n_jobs" in est.get_params():
+        est.set_params(n_jobs=1)
+    return model
+
+
 def survival_at_times(model, X, times):
     """S(t) matrix (n x len(times)) from a sksurv predict_survival_function."""
     fns = model.predict_survival_function(X)
